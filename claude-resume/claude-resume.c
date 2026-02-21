@@ -146,13 +146,14 @@ int main(int argc, char *argv[])
     }
 
     char session_id[256];
-    if (!find_newest_session(project_dir, session_id, sizeof(session_id))) {
-        fprintf(stderr, "No sessions found in: %s\n", project_dir);
-        fprintf(stderr, "Run with --show-path to verify the search directory.\n");
-        return 1;
+    const char *args[4];
+    if (find_newest_session(project_dir, session_id, sizeof(session_id))) {
+        args[0] = "claude"; args[1] = "--resume"; args[2] = session_id; args[3] = NULL;
+    } else {
+        /* No prior session — start fresh. */
+        args[0] = "claude"; args[1] = NULL;
     }
 
-    const char *args[] = { "claude", "--resume", session_id, NULL };
 #ifdef _WIN32
     return _execvp("claude", args);
 #else
