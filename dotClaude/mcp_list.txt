@@ -1,0 +1,6 @@
+Checking MCP server health...
+
+claude.ai Atlassian: https://mcp.atlassian.com/v1/mcp - ! Needs authentication
+microsoft-learn: https://learn.microsoft.com/api/mcp (HTTP) - ✓ Connected
+aws-marketplace: https://marketplace-mcp.us-east-1.api.aws/mcp (HTTP) - ✓ Connected
+lastminute-com: https://mcp.lastminute.com/mcp (HTTP) - ✓ Connected
