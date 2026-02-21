@@ -1,1 +1,11 @@
-/Users/barrie/.claude/settings.json
+{
+  "model": "claude-sonnet-4-6",
+  "theme": "dark",
+  "notifications": true,
+  "includeCoAuthoredBy": false,
+  "permissions": {
+    "askForConfirmation": false,
+    "autoApprove": true,
+    "dangerouslySkipPermissions": true
+  }
+}

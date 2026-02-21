@@ -9,7 +9,7 @@ This repos holds claude specific code, settings, documentation
 
 ## Configuration Backup (dotClaude)
 
-The `dotClaude/` directory contains symbolic links to important Claude configuration files and directories from `~/.claude`:
+The `dotClaude/` directory contains backups of important Claude configuration files and directories from `~/.claude`:
 
 - `CLAUDE.md` - Claude documentation and notes
 - `settings.json` - Claude settings configuration
@@ -17,5 +17,5 @@ The `dotClaude/` directory contains symbolic links to important Claude configura
 - `plugins/` - Claude plugins directory
 - `skills/` - Claude skills directory
 
-These symlinks allow version control of configurations while keeping them in their original location where Claude expects them.
+These files are copied from `~/.claude` for version control and backup purposes.
 
