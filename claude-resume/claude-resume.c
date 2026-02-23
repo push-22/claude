@@ -13,6 +13,7 @@
  * If the Windows path format differs on your machine, run with --show-path
  * to see what directory is being searched, then adjust munge_path() below.
  * Use --show-id to print the most recent session UUID without launching Claude.
+ * Use --help or /? for usage.
  */
 
 #define _CRT_SECURE_NO_WARNINGS 1
@@ -123,6 +124,21 @@ int main(int argc, char *argv[])
 {
     int show_path = (argc > 1 && strcmp(argv[1], "--show-path") == 0);
     int show_id   = (argc > 1 && strcmp(argv[1], "--show-id")   == 0);
+    int show_help = (argc > 1 && (strcmp(argv[1], "--help") == 0 ||
+                                  strcmp(argv[1], "/?")     == 0));
+
+    if (show_help) {
+        printf("Usage: claude-resume [OPTION]\n"
+               "\n"
+               "Resume the most recent Claude Code session for the current directory.\n"
+               "With no options, finds the latest session and runs: claude --resume <id>\n"
+               "\n"
+               "Options:\n"
+               "  --show-path   Print the project session directory and exit\n"
+               "  --show-id     Print the most recent session UUID and exit\n"
+               "  --help, /?    Show this help and exit\n");
+        return 0;
+    }
 
     char *home = get_home();
     if (!home) { fprintf(stderr, "Cannot determine home directory\n"); return 1; }
