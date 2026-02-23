@@ -1,0 +1,38 @@
+<Project>
+	<PropertyGroup>
+		<!-- rcedit.exe placed in the solution root -->
+		<RceditPath>$(MSBuildThisFileDirectory)rcedit.exe</RceditPath>
+	</PropertyGroup>
+
+	<Target Name="StampExeVersionWithRcedit"
+			AfterTargets="Publish"
+			Condition="'$(OS)'=='Windows_NT' and Exists('$(RceditPath)') and '$(OutputType)'=='Exe'">
+		<ItemGroup>
+			<PublishedExe Include="$(PublishDir)$(AssemblyName).exe"
+						  Condition="Exists('$(PublishDir)$(AssemblyName).exe')" />
+		</ItemGroup>
+
+		<Message Importance="High"
+				 Text="Stamping version on: %(PublishedExe.Identity)" />
+
+		<!-- stamp the versioning info onto the generated exe
+		
+		 you can't have double - in an xml comment, so the line below is split into two comments
+				
+		<Exec Command="$(RceditPath) %(PublishedExe.Identity) -
+		-set-file-version $(FileVersion) -
+		-set-product-version $(Version) -
+		-set-version-string ProductName $(ProductName) -
+		-set-version-string CompanyName $(CompanyName) -
+		-set-version-string FileDescription $(FileDescription) -
+		-set-version-string LegalCopyright $(Copyright)" />
+
+		-->
+
+		<!-- Copy README.md from solution root into the publish folder -->
+		<Copy SourceFiles="$(MSBuildThisFileDirectory)README.md"
+			  DestinationFolder="$(PublishDir)"
+			  SkipUnchangedFiles="true"
+			  Condition="Exists('$(MSBuildThisFileDirectory)README.md') and '$(PublishDir)' != ''" />
+	</Target>
+</Project>
