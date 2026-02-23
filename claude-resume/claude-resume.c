@@ -8,11 +8,14 @@
  *
  * Path munging:
  *   Unix:    /Users/foo/bar  ->  -Users-foo-bar   (/ becomes -)
- *   Windows: C:\Users\foo    ->  C--Users-foo     (: dropped, \ becomes -)
+ *   Windows: C:\Users\foo    ->  C--Users-foo     (: replaced with -, \ becomes -)
  *
  * If the Windows path format differs on your machine, run with --show-path
  * to see what directory is being searched, then adjust munge_path() below.
+ * Use --show-id to print the most recent session UUID without launching Claude.
  */
+
+#define _CRT_SECURE_NO_WARNINGS 1
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,7 +26,6 @@
 #  define WIN32_LEAN_AND_MEAN
 #  include <windows.h>
 #  include <direct.h>
-#  include <process.h>
 #  ifndef PATH_MAX
 #    define PATH_MAX 4096
 #  endif
@@ -44,7 +46,7 @@ static void munge_path(const char *path, char *out, size_t out_size)
     for (size_t i = 0; path[i] && j < out_size - 1; i++) {
 #ifdef _WIN32
         if      (path[i] == '\\') out[j++] = '-';
-        else if (path[i] == ':')  { /* drop colon after drive letter */ }
+        else if (path[i] == ':')  { out[j++] = '-'; }
         else                      out[j++] = path[i];
 #else
         out[j++] = (path[i] == '/') ? '-' : path[i];
@@ -120,6 +122,7 @@ static int find_newest_session(const char *dir, char *session_id, size_t id_size
 int main(int argc, char *argv[])
 {
     int show_path = (argc > 1 && strcmp(argv[1], "--show-path") == 0);
+    int show_id   = (argc > 1 && strcmp(argv[1], "--show-id")   == 0);
 
     char *home = get_home();
     if (!home) { fprintf(stderr, "Cannot determine home directory\n"); return 1; }
@@ -145,18 +148,44 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    if (show_id) {
+        char session_id[256];
+        if (find_newest_session(project_dir, session_id, sizeof(session_id)))
+            printf("%s\n", session_id);
+        else {
+            fprintf(stderr, "claude-resume: no session found in %s\n", project_dir);
+            return 1;
+        }
+        return 0;
+    }
+
     char session_id[256];
+    int found = find_newest_session(project_dir, session_id, sizeof(session_id));
+
+    if (found)
+        fprintf(stderr, "claude-resume: resuming %s\n", session_id);
+    else
+        fprintf(stderr, "claude-resume: no session found in %s, starting fresh\n", project_dir);
+
+#ifdef _WIN32
+    /* npm installs CLIs as .cmd wrappers. _execvp("cmd.exe", "/c", ...) reaches
+       claude but cmd.exe /c corrupts the console input mode for Node.js TUI apps
+       (raw mode fails, isatty returns false). system() keeps this process alive as
+       the console owner so handle inheritance and raw-mode input work correctly. */
+    char cmd[512];
+    if (found)
+        snprintf(cmd, sizeof(cmd), "claude --resume %s", session_id);
+    else
+        strncpy(cmd, "claude", sizeof(cmd) - 1);
+    return system(cmd);
+#else
     const char *args[4];
-    if (find_newest_session(project_dir, session_id, sizeof(session_id))) {
+    if (found) {
         args[0] = "claude"; args[1] = "--resume"; args[2] = session_id; args[3] = NULL;
     } else {
         /* No prior session — start fresh. */
         args[0] = "claude"; args[1] = NULL;
     }
-
-#ifdef _WIN32
-    return _execvp("claude", args);
-#else
     execvp("claude", (char *const *)args);
     perror("execvp");
     return 1;
